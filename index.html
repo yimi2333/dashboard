@@ -635,7 +635,6 @@ body {
 .pss-val { font-family:'DM Mono',monospace; font-size:17px; font-weight:500; }
 .pss-sub { font-size:10px; color:var(--text2); margin-top:2px; }
 
-
 /* ── SIDEBAR COLLAPSE ── */
 .sidebar {
   transition: width 0.22s cubic-bezier(.4,0,.2,1);
@@ -813,8 +812,6 @@ body {
 .daily-archive { display: none; }
 .daily-archive.active { display: block; animation: fadeIn 0.2s ease; }
 
-
-
 /* ── CELL VISUAL SEPARATOR ── */
 .matrix tbody td {
   border-right: 1px solid var(--border);
@@ -830,6 +827,111 @@ body {
 .neg-pill, .neg-pill-m, .neg-pill-l { 
   font-size: 10.5px; white-space: normal; word-break: break-word; 
 }
+
+
+/* ── WEEKLY ARCHIVE PICKER ── */
+.week-picker-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1rem;
+}
+.week-trigger-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border-radius: 7px;
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+  color: var(--text2);
+  font-size: 12px;
+  font-family: 'DM Mono', monospace;
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+.week-trigger-btn:hover { background: var(--bg4); color: var(--text); border-color: rgba(200,240,80,0.3); }
+.week-trigger-btn.open { color: var(--accent); border-color: rgba(200,240,80,0.4); background: rgba(200,240,80,0.06); }
+.week-trigger-btn svg { width: 13px; height: 13px; flex-shrink: 0; opacity: 0.7; }
+.week-trigger-btn.open svg { opacity: 1; }
+.week-current-label {
+  font-size: 12px;
+  color: var(--text2);
+  font-family: 'DM Mono', monospace;
+}
+.week-current-label span { color: var(--accent); font-weight: 500; }
+
+.week-popover {
+  display: none;
+  position: absolute;
+  z-index: 200;
+  top: calc(100% + 6px);
+  left: 0;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 0.75rem;
+  width: 260px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  animation: fadeIn 0.12s ease;
+}
+.week-popover.open { display: block; }
+.week-anchor { position: relative; display: inline-block; }
+
+.week-list { display: flex; flex-direction: column; gap: 4px; }
+.week-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.week-item:hover { background: var(--bg4); border-color: rgba(200,240,80,0.3); }
+.week-item.selected {
+  background: rgba(200,240,80,0.1);
+  border-color: rgba(200,240,80,0.35);
+}
+.week-item-num {
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  color: var(--text3);
+  min-width: 28px;
+}
+.week-item-range {
+  font-size: 12px;
+  font-family: 'DM Mono', monospace;
+  color: var(--text);
+  font-weight: 500;
+  flex: 1;
+  padding: 0 8px;
+}
+.week-item-badge {
+  font-size: 9px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(200,240,80,0.12);
+  color: var(--accent);
+  font-family: 'DM Mono', monospace;
+}
+.week-item-badge-old {
+  background: var(--bg4);
+  color: var(--text3);
+}
+.week-footer {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  font-size: 10px;
+  color: var(--text3);
+}
+
+.weekly-archive { display: none; }
+.weekly-archive.active { display: block; animation: fadeIn 0.2s ease; }
 
 </style>
 </head>
@@ -862,6 +964,8 @@ body {
   </div>
 </div>
 
+      
+
 <div class="app">
 
   <!-- SIDEBAR -->
@@ -876,7 +980,7 @@ body {
           <line x1="4" y1="10" x2="7" y2="10" stroke="currentColor" stroke-width="1.1"/>
         </svg>
         每日简报
-        <span class="nav-badge">2</span>
+        <span class="nav-badge">6</span>
       </div>
       <div class="nav-item" onclick="switchView('weekly', this)">
         <svg class="nav-icon" viewBox="0 0 14 14" fill="none">
@@ -935,24 +1039,24 @@ body {
     <div class="sidebar-stats">
       <div class="stat-mini">
         <div class="stat-mini-label">AI Act 倒计时</div>
-        <div class="stat-mini-val">138<span style="font-size:12px;color:var(--text3)"> 天</span></div>
+        <div class="stat-mini-val"><span id="aiact-days">-</span><span style="font-size:12px;color:var(--text3)"> 天</span></div>
         <div class="stat-mini-sub">2026年8月2日执行</div>
       </div>
       <div class="stat-mini">
         <div class="stat-mini-label">EAA 无障碍法</div>
-        <div class="stat-mini-val">102<span style="font-size:12px;color:var(--text3)"> 天</span></div>
+        <div class="stat-mini-val"><span id="eaa-days">-</span><span style="font-size:12px;color:var(--text3)"> 天</span></div>
         <div class="stat-mini-sub">2026年6月28日执行</div>
       </div>
     </div>
   </div>
 
+
+
   <!-- MAIN -->
   <div class="main">
 
-    <!-- ═══════════════════════════════════════
-         DAILY VIEW
-    ═══════════════════════════════════════ -->
-    <div class="view active" id="view-daily">
+        <div class="view active" id="view-daily">
+
 
       <!-- CALENDAR TRIGGER + POPOVER -->
       <div class="cal-trigger-bar">
@@ -970,8 +1074,8 @@ body {
             <div class="cal-header">
               <span class="cal-title" id="cal-title">2026年 3月</span>
               <div class="cal-nav">
-                <button class="cal-nav-btn" onclick="calNav(-1)">‹</button>
-                <button class="cal-nav-btn" onclick="calNav(1)">›</button>
+                <button class="cal-nav-btn" onclick="calNav(-1)">&#8249;</button>
+                <button class="cal-nav-btn" onclick="calNav(1)">&#8250;</button>
               </div>
             </div>
             <div class="cal-grid" id="cal-grid"></div>
@@ -981,10 +1085,11 @@ body {
             </div>
           </div>
         </div>
-        <span class="cal-current-label">当前查看：<span id="cal-selected-label">2026-03-19</span></span>
+        <span class="cal-current-label">当前查看：<span id="cal-selected-label">2026-03-23</span></span>
       </div>
 
-      <div class="daily-archive" id="archive-2026-03-18">
+
+<div class="daily-archive" id="archive-2026-03-18">
         <div class="view-header">
           <div>
             <div class="view-title">每日情报简报</div>
@@ -1037,7 +1142,7 @@ body {
         </div>
       </div>
 
-      <div class="daily-archive active" id="archive-2026-03-19">
+<div class="daily-archive" id="archive-2026-03-19">
 
       <div class="view-header">
         <div>
@@ -1051,6 +1156,8 @@ body {
           </div>
         </div>
       </div>
+
+      
 
       <!-- 双重预警 -->
       <div class="alert-bar" style="background:rgba(200,240,80,0.06);border-color:rgba(200,240,80,0.2);border-left-color:var(--accent);">
@@ -1276,227 +1383,891 @@ body {
         <button class="switch-btn" onclick="switchView('weekly', document.querySelector('[onclick*=weekly]'))">查看周报 →</button>
       </div>
     </div>
+
+<div class="daily-archive" id="archive-2026-03-20">
+        <div class="view-header">
+          <div>
+            <div class="view-title">每日情报简报</div>
+            <div class="view-meta">2026-03-20 · 北欧重点 · 全球视野 · 数据来源标注于各条目</div>
+            <div class="view-chips">
+              <span class="chip chip-red">🔴 促销窗口第2天</span>
+              <span class="chip chip-amber" style="color:var(--amber);border-color:rgba(240,168,50,0.3);background:var(--amber-bg);">Wayfair Spring Cyber Week进行中</span>
+              <span class="chip chip-green">Amazon 5天后开售</span>
+              <span class="chip">户外庭院大量折扣上线</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="alert-bar" style="background:rgba(200,240,80,0.06);border-color:rgba(200,240,80,0.2);border-left-color:var(--accent);">
+          <div class="alert-dot" style="background:var(--accent)"></div>
+          <div>
+            <div class="alert-title" style="color:var(--accent)">📦 户外家具折扣潮：Wayfair、Walmart、Home Depot同步启动Spring促销</div>
+            <div class="alert-body" style="color:rgba(200,240,80,0.75)">Yahoo/Tom's Guide 3月20日报道：庭院座椅套装、户外躺椅、遮阳伞同步大幅折扣。WestinTrends HDPE Adirondack躺椅$80（原$239，-65%），Keter Pacific Cool Bar侧边桌$58（原$98），庭院折扣品类流量大量上升。Amazon Big Spring Sale早期折扣今日已上线（正式3月25日），庭院/园艺品类可见40%+折扣。（来源：Yahoo Shopping 2026.3.20 / Tom's Guide 2026.3.20）</div>
+          </div>
+        </div>
+
+        <div class="alert-bar">
+          <div class="alert-dot"></div>
+          <div>
+            <div class="alert-title">🔴 Amazon Commingling截止倒计时11天（3月31日）</div>
+            <div class="alert-body">转销商须为所有FBA入仓库存贴FNSKU标签，品牌主继续用UPC虚拟追踪。今日再次提醒：未完成合规的3PL合作方须立即通知，避免3月31日后货物被标记"缺陷"。（来源：BellaVix 2026.2）</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="sec-bar bar-blue"><span class="sec-num">01</span><span class="sec-title">跨境平台政策动态</span></div>
+          <div class="sec-body">
+            <div class="platform-grid">
+              <div class="p-card p-card-high">
+                <div class="p-head"><span class="p-name">Amazon + Wayfair</span><span class="pbadge pbadge-h">高优先</span></div>
+                <div class="p-item">① Amazon Big Spring Sale早期折扣今日已上线，庭院/园艺品类折扣幅度40-65%，正式活动3月25日启动。（来源：NBC Select 2026.3.20）</div>
+                <div class="p-item" style="margin-top:5px">② Wayfair Spring Cyber Week第2天：户外躺椅/庭院套装/存储收纳折扣最高80%，Wayfair Rewards会员享额外专属折扣。（来源：NBC Select 2026.3.19）</div>
+                <div class="p-impact"><b>今日数据：</b>庭院品类New Releases页新品持续涌入，ComfCove、Aoxun、PHI VILLA等品牌今日新品上架密集</div>
+              </div>
+              <div class="p-card">
+                <div class="p-head"><span class="p-name">Wayfair 线下实体战略</span><span class="pbadge pbadge-m">中优先</span></div>
+                <div class="p-item">Wayfair第二家大型实体店将于3月31日在亚特兰大开业（约15万平方英尺），正式庆典4月17-19日。"2026年是Wayfair的关键年"，线上+线下协同布局加速。（来源：Wayfair Press Release 2026.3.3）</div>
+                <div class="p-impact"><b>判断：</b>Wayfair在家具品类线下体验+线上AR的结合正在形成，3D/AR内容的重要性进一步提升</div>
+              </div>
+              <div class="p-card">
+                <div class="p-head"><span class="p-name">Google UCP — 新一轮签约</span><span class="pbadge pbadge-m">中优先</span></div>
+                <div class="p-item">Wayfair已签约加入Google UCP（Wayfair是共同开发方之一），目标是AI代理购物场景中维持定价/履约/客服的一致性控制权。已签约方：Shopify（第一天）、Walmart、Wayfair、Target。Amazon尚未参与。（来源：Digital Commerce 360 2026.1.14）</div>
+                <div class="p-impact"><b>影响：</b>AI代理购物入口Wayfair将优先出现，Amazon流量压力加大</div>
+              </div>
+              <div class="p-card">
+                <div class="p-head"><span class="p-name">Home Depot Spring Starts</span><span class="pbadge pbadge-m">中优先</span></div>
+                <div class="p-item">Home Depot Spring Starts Sale持续至4月1日，选定电动工具、电池/配件和储物容器最高55%折扣。庭院/户外品类与Amazon/Wayfair同步进入Spring促销密集期。（来源：NBC Select 2026.3.20）</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="sec-bar bar-orange"><span class="sec-num">02</span><span class="sec-title">AI行业与竞品动态</span></div>
+          <div class="sec-body">
+            <div class="comp-list">
+              <div class="comp-row">
+                <div><div class="c-name">Midjourney V8 Alpha</div><div class="ctag ctag-t">最新更新</div></div>
+                <div>
+                  <div class="c-body">Midjourney V8 Alpha更新：Relax模式已向Standard/Pro/Mega用户全面开放；新增SREF/Moodboards版本（4倍速度/成本，支持--hd和--p）；新增宽高比6:11、4:5、5:4、21:9；改进拖放和批量操作（支持2000条）；下一轮V8训练正在准备中。（来源：Midjourney Release Notes / Releasebot 2026.3.21）</div>
+                  <div class="c-note"><b>影响：</b>Relax模式大幅降低批量生产成本，对电商大批量产品图生成场景直接有利</div>
+                </div>
+              </div>
+              <div class="comp-row">
+                <div><div class="c-name">Kling 3.0 全面评测</div><div class="ctag ctag-w">重点关注</div></div>
+                <div>
+                  <div class="c-body">Cybernews对Kling 3.0进行深度评测：统一多模态视频引擎（文本+图像+视频+原生音频一次生成），物理引擎仿真（重力/惯性/面料互动），支持4K HDR高动态范围，多镜头连续性（单个Prompt内完成转场/机位/情绪节奏）。定位"虚拟导演"，超越竞品Runway/Pika的技术门槛。（来源：Cybernews 2026.3）</div>
+                  <div class="c-note"><b>电商应用：</b>产品广告拍摄级场景（慢动作、精准打光、宏观镜头）是Kling 3.0最强场景，对我们高端庭院/家居产品视觉内容生产有直接价值</div>
+                </div>
+              </div>
+              <div class="comp-row">
+                <div><div class="c-name">AI工具格局 — 2026年最新</div><div class="ctag ctag-o">趋势判断</div></div>
+                <div>
+                  <div class="c-body">Q1 2026新增38个工具（其中28个来自Google AI生态）。Kling 3.0（$7-10）被评为"同价位最强"视频工具。Gemini Canvas（图像/代码AI工作台）已向美国用户全量推出。OpenArt支持100+模型（含Kling 3.0、Veo 3.1、Sora 2）成为最全能聚合平台。专业创作者平均使用4-6个工具。（来源：GitHub AI Tools Master List 2026.3.6）</div>
+                  <div class="c-note"><b>判断：</b>工具聚合平台趋势加速，"一站式"定位的核心价值是减少工具切换成本，与我们平台战略方向一致</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="sec-bar bar-green"><span class="sec-num">03</span><span class="sec-title">3DGS · 品类动态</span></div>
+          <div class="sec-body">
+            <div class="tgs-grid">
+              <div class="tgs-card tgs-full">
+                <div class="tgs-lbl">今日庭院品类新品数据 <span style="font-size:9px;color:var(--text3)">Amazon New Releases 2026.3.20</span></div>
+                <div class="tgs-title">庭院座椅New Releases：ComfCove/Aoxun/PHI VILLA/MAISON等新品密集上架</div>
+                <div class="tgs-body">今日Amazon庭院套装New Releases：铝框架+厚坐垫款（ComfCove 6座铝合金/Aoxun 7件套/MAISON 6座模块化/PHI VILLA L形），主力价格带$299-$799。含视频Listing约30%，AR/3D渗透率&lt;3%。Spring Sale前新品涌入持续，差评主词：cushion fade UV、paint chipped on delivery、missing hardware。</div>
+                <span class="sig sig-r">3D渗透率&lt;3% — 先行上传窗口期仍开放</span>
+              </div>
+              <div class="tgs-card">
+                <div class="tgs-lbl">沙发品类 BSR Top</div>
+                <div class="tgs-title">Devoko/Vongrasig/Tangkula持续领跑</div>
+                <div class="tgs-body">沙发BSR：Devoko 5件套/Vongrasig 5件套/Tangkula Daybed/Rattaner户外沙发持续前列。差评主词：smell/odor（高频）、assembly hard（高频）、cushion flat fast（中频）。</div>
+                <span class="sig sig-b">视频率~25%，3D&lt;10%</span>
+              </div>
+              <div class="tgs-card">
+                <div class="tgs-lbl">餐桌椅 趋势</div>
+                <div class="tgs-title">Sintered Stone持续上架，伸缩款热度不减</div>
+                <div class="tgs-body">烧结石面餐桌今日持续上新，Oasbira户外铝合金8人餐桌/Sweecci 5件套/Patio Kingdom 9件套均上榜New Releases。伸缩款搜索周环比+31%持续。</div>
+                <span class="sig sig-g">AR&lt;3% — 先行窗口开放</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="sec-bar bar-red"><span class="sec-num">04</span><span class="sec-title">今日行动建议</span></div>
+          <div class="sec-body">
+            <div class="action-list">
+              <div class="a-row a-now">
+                <div class="a-dot dot-r"></div>
+                <div>
+                  <div class="a-label a-label-r">立即行动</div>
+                  <div class="a-text a-text-r">① Amazon Big Spring Sale早期折扣已上线，确认是否已参与庭院/家居品类折扣报名 ② Wayfair Spring Cyber Week第2天，今日确认Way Day提报（4月下旬，+280%流量窗口）③ Commingling合规还剩11天，今日通知3PL合作方进度</div>
+                </div>
+              </div>
+              <div class="a-row a-week">
+                <div class="a-dot dot-a"></div>
+                <div>
+                  <div class="a-label a-label-a">本周跟进</div>
+                  <div class="a-text a-text-a">① 测试MJ V8 Alpha新增Relax模式：批量生产场景成本降低了多少？② Kling 3.0产品广告场景实测：慢动作+精准打光效果评估 ③ 追踪Wayfair亚特兰大实体店（3月31日开业）的AR展示方案</div>
+                </div>
+              </div>
+              <div class="a-row a-watch">
+                <div class="a-dot dot-b"></div>
+                <div>
+                  <div class="a-label a-label-b">长期观察</div>
+                  <div class="a-text a-text-b">① Amazon/Shopify是否宣布3DGS格式官方支持 ② Google UCP生态扩张——Amazon是否会加入 ③ EU AI Act守则3月30日反馈截止后的最终方向</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="view-footer">
+          <div class="source-tags">
+            <span class="stag">Yahoo Shopping 2026.3.20</span>
+            <span class="stag">NBC Select 2026.3.20</span>
+            <span class="stag">Cybernews 2026.3</span>
+            <span class="stag">Midjourney Release Notes 2026.3</span>
+            <span class="stag">Amazon New Releases 2026.3.20</span>
+            <span class="stag">Digital Commerce 360 2026.1.14</span>
+          </div>
+          <button class="switch-btn" onclick="switchView('weekly', document.querySelector('[onclick*=weekly]'))">查看周报 →</button>
+        </div>
       </div>
 
+<div class="daily-archive" id="archive-2026-03-21">
+        <div class="view-header">
+          <div>
+            <div class="view-title">每日情报简报</div>
+            <div class="view-meta">2026-03-21 · 北欧重点 · 全球视野 · 数据来源标注于各条目</div>
+            <div class="view-chips">
+              <span class="chip chip-red">🔴 促销窗口第3天</span>
+              <span class="chip chip-amber" style="color:var(--amber);border-color:rgba(240,168,50,0.3);background:var(--amber-bg);">Amazon 4天后开售</span>
+              <span class="chip chip-green">Wayfair庭院最大折扣-79%</span>
+              <span class="chip">Target Circle Deal Days确认3月25日</span>
+            </div>
+          </div>
+        </div>
 
-    <!-- ═══════════════════════════════════════
-         WEEKLY VIEW
-    ═══════════════════════════════════════ -->
+        <div class="alert-bar" style="background:rgba(200,240,80,0.06);border-color:rgba(200,240,80,0.2);border-left-color:var(--accent);">
+          <div class="alert-dot" style="background:var(--accent)"></div>
+          <div>
+            <div class="alert-title" style="color:var(--accent)">🚀 本周最大促销节点：Amazon + Target + Wayfair 三平台25日同步启动</div>
+            <div class="alert-body" style="color:rgba(200,240,80,0.75)">GMA/NBC Select 3月21日确认：Amazon Big Spring Sale（3月25-31日）、Target Circle Deal Days（3月25-27日）与Wayfair Spring Cyber Week（至3月23日）形成春季促销最密集的一周。Ulta 21 Days of Beauty（至3月26日）、REI Member Days（至3月23日）同步进行，消费者注意力和钱包集中释放。庭院家具是跨平台共同主推品类。（来源：NBC Select / GMA 2026.3.21）</div>
+          </div>
+        </div>
+
+        <div class="alert-bar">
+          <div class="alert-dot"></div>
+          <div>
+            <div class="alert-title">🔴 Amazon Commingling 截止10天（3月31日）</div>
+            <div class="alert-body">今日再次提醒：3月31日后所有未贴FNSKU的转销商库存将被标记"缺陷"。品牌主可用UPC虚拟追踪方案，无需贴实体标签。如仍未处理，今日是最后窗口之一。（来源：BGR 2025.12.31 / BellaVix 2026.2）</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="sec-bar bar-blue"><span class="sec-num">01</span><span class="sec-title">跨境平台政策动态</span></div>
+          <div class="sec-body">
+            <div class="platform-grid">
+              <div class="p-card p-card-high">
+                <div class="p-head"><span class="p-name">Amazon Big Spring Sale</span><span class="pbadge pbadge-h">高优先</span></div>
+                <div class="p-item">① 3月25日12:01 AM PDT正式启动，持续至3月31日。全民可购（无需Prime），Prime会员享"Prime Spring Deal"标签专属折扣。（来源：Today.com 2026.3.21）</div>
+                <div class="p-item" style="margin-top:5px">② 今日早期折扣可见品类：庭院家具、园艺工具、烧烤设备、家居收纳、床品、健身器材。提前锁定的消费者已开始浏览，今日流量已较平日+40%以上（估算）。</div>
+                <div class="p-impact"><b>卖家行动：</b>今日是最后确认促销主图和视频素材的窗口</div>
+              </div>
+              <div class="p-card p-card-high">
+                <div class="p-head"><span class="p-name">Target Circle Deal Days</span><span class="pbadge pbadge-h">高优先</span></div>
+                <div class="p-item">Target Circle Deal Days 3月25-27日，与Amazon同步启动。庭院/户外品类为重点。Target会员享独家Deal，与Amazon Big Spring Sale直接竞争庭院品类消费者。（来源：NBC Select 2026.3.20）</div>
+                <div class="p-impact"><b>判断：</b>双平台同周促销，庭院品类消费者决策窗口集中在3月25-27日，视觉内容质量决定点击率</div>
+              </div>
+              <div class="p-card">
+                <div class="p-head"><span class="p-name">Wayfair Q4 2025财报</span><span class="pbadge pbadge-m">中优先</span></div>
+                <div class="p-item">Wayfair Q4 2025财报显示营收重新增长，客均消费+3.6%（AOV），CFO称"2026年是Wayfair关键年"。但新客增长平缓，依赖现有客户扩展。（来源：Digital Commerce 360 2026.2）</div>
+                <div class="p-impact"><b>判断：</b>Wayfair增长依赖提升客单价，3D/AR内容直接提升AOV，与其战略方向高度契合</div>
+              </div>
+              <div class="p-card">
+                <div class="p-head"><span class="p-name">速卖通 / Best Buy</span><span class="pbadge pbadge-m">中优先</span></div>
+                <div class="p-item">Best Buy Tech Fest持续至3月22日，Apple/Lenovo等科技折扣活跃，庭院/家居3C联动效应明显。速卖通本周无新政策变化，持续监测欧洲广告投放趋势。（来源：NBC Select 2026.3.20）</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="sec-bar bar-orange"><span class="sec-num">02</span><span class="sec-title">AI行业与竞品动态</span></div>
+          <div class="sec-body">
+            <div class="comp-list">
+              <div class="comp-row">
+                <div><div class="c-name">2026 AI视频格局</div><div class="ctag ctag-t">行业判断</div></div>
+                <div>
+                  <div class="c-body">Medium/Cliprise深度分析（2026年2月）：Kling 3.0 Omni = 角色一致性当前最强；Sora 2 = 多角色互动/叙事最强（最长25秒）；Runway Gen-4 = 视觉风格/艺术性最强；Seedance 2.0 = 音频同步质量最强。"图像模型和视频模型的边界正在消融"。专业创作者工作流：图像用MJ → 视频用Kling → 剪辑用CapCut → 社媒片段用revid.ai。（来源：Medium/Cliprise 2026.2）</div>
+                  <div class="c-note"><b>电商应用：</b>庭院/家居产品视觉内容推荐工作流：产品图MJ V8 → 场景视频Kling 3.0 → 短视频剪辑CapCut。Kling 3.0的产品广告场景（macro镜头+精准打光）是当前最优选择</div>
+                </div>
+              </div>
+              <div class="comp-row">
+                <div><div class="c-name">OpenArt 竞品分析</div><div class="ctag ctag-w">重点关注</div></div>
+                <div>
+                  <div class="c-body">OpenArt支持100+模型（Kling 3.0/Veo 3.1/Sora 2/Nano Banana 2等），套餐$7/月起，角色一致性（Character 2.0）和一键故事（One-Click Story）是核心差异。无公开API是最大短板。与Midjourney相比：MJ单图质量更高，OpenArt综合能力更强。（来源：ScribeHow 2026.3.6）</div>
+                  <div class="c-note"><b>定位威胁：</b>OpenArt的"聚合+工作流"定位与我们高度重叠，需关注其在电商场景的渗透速度</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="sec-bar bar-red"><span class="sec-num">03</span><span class="sec-title">今日行动建议</span></div>
+          <div class="sec-body">
+            <div class="action-list">
+              <div class="a-row a-now">
+                <div class="a-dot dot-r"></div>
+                <div>
+                  <div class="a-label a-label-r">立即行动（今日截止）</div>
+                  <div class="a-text a-text-r">① 促销主图今日必须完成：大促期间高流量下主图点击率决定一切，含折扣标签/场景图/15秒竖版视频 ② Commingling合规还剩10天，今日最后确认3PL进度 ③ Way Day提报：Wayfair 4月下旬，今日提报不会太晚</div>
+                </div>
+              </div>
+              <div class="a-row a-week">
+                <div class="a-dot dot-a"></div>
+                <div>
+                  <div class="a-label a-label-a">25日大促启动后跟进</div>
+                  <div class="a-text a-text-a">① 追踪含AR/3D标签的庭院Listing vs 普通Listing的点击率/转化率差异 ② 监测竞品品牌（Devoko/Vongrasig/PHI VILLA）促销视觉内容策略 ③ 记录大促期间庭院品类的差评词变化（是否出现"缺货/延迟"等新词）</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="view-footer">
+          <div class="source-tags">
+            <span class="stag">Today.com 2026.3.21</span>
+            <span class="stag">NBC Select 2026.3.21</span>
+            <span class="stag">GMA 2026.3.21</span>
+            <span class="stag">Medium/Cliprise 2026.2</span>
+            <span class="stag">Digital Commerce 360 2026.2</span>
+          </div>
+          <button class="switch-btn" onclick="switchView('weekly', document.querySelector('[onclick*=weekly]'))">查看周报 →</button>
+        </div>
+      </div>
+
+<div class="daily-archive" id="archive-2026-03-22">
+        <div class="view-header">
+          <div>
+            <div class="view-title">每日情报简报</div>
+            <div class="view-meta">2026-03-22 · 北欧重点 · 全球视野 · 数据来源标注于各条目</div>
+            <div class="view-chips">
+              <span class="chip chip-red">🔴 大促前最后备战日</span>
+              <span class="chip chip-amber" style="color:var(--amber);border-color:rgba(240,168,50,0.3);background:var(--amber-bg);">Amazon 3天后 · Wayfair明日结束</span>
+              <span class="chip chip-green">Wayfair亚特兰大实体店9天后开业</span>
+              <span class="chip">EU守则反馈8天截止</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="alert-bar" style="background:rgba(240,79,79,0.08);border-color:rgba(240,79,79,0.25);border-left-color:var(--red);">
+          <div class="alert-dot"></div>
+          <div>
+            <div class="alert-title">🔴 今日是大促前最后备战日 — 明天Wayfair结束，后天Amazon开售</div>
+            <div class="alert-body">促销窗口倒计时：① Wayfair Spring Cyber Week明日（3月23日）结束，今日是最后参促确认机会 ② Amazon Big Spring Sale 3天后（3月25日）启动 ③ Target Circle Deal Days同步25日 ④ EU AI Act守则反馈3月30日截止（8天）⑤ Amazon Commingling 3月31日截止（9天）。今日是本周最密集的行动截止日。</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="sec-bar bar-blue"><span class="sec-num">01</span><span class="sec-title">跨境平台政策动态</span></div>
+          <div class="sec-body">
+            <div class="platform-grid">
+              <div class="p-card p-card-high">
+                <div class="p-head"><span class="p-name">Wayfair 线下实体战略</span><span class="pbadge pbadge-h">今日新增</span></div>
+                <div class="p-item">Wayfair亚特兰大第二家实体大店3月31日开业（15万平方英尺），4月17-19日正式庆典，前100名顾客每日赠$50礼品卡。门店主打：家具/家居/户外/家电/家装全品类，含"The Porch"全天咖啡厅。（来源：Wayfair Press Release 2026.3.3）</div>
+                <div class="p-impact"><b>战略意义：</b>线下体验空间+线上AR/3D内容形成协同，3D内容对线下引流和线上留客的双向价值凸显</div>
+              </div>
+              <div class="p-card p-card-high">
+                <div class="p-head"><span class="p-name">Amazon 2026变化总结</span><span class="pbadge pbadge-h">高优先</span></div>
+                <div class="p-item">① FBA入仓合规（Commingling终止，3月31日）② AI广告Prompts付费（3月25日）③ AI Agent政策（3月4日已生效）④ Big Spring Sale（3月25-31日）。2026年Amazon对卖家的四大核心变化同期叠加，合规+视觉内容质量是双重核心竞争力。（来源：BGR 2025.12 / ecombrainly 2026.3）</div>
+                <div class="p-impact"><b>总结：</b>Amazon正在从"放任"转向"合规化+内容质量化"，视觉内容投入ROI提升</div>
+              </div>
+              <div class="p-card">
+                <div class="p-head"><span class="p-name">EU AI Act 守则反馈</span><span class="pbadge pbadge-m">中优先</span></div>
+                <div class="p-item">欧盟AI内容标注守则第二版草稿公众反馈3月30日截止（还剩8天）。TrueScreen 3月16日确认C2PA是主流行业验证方案，SynthID（Google，20亿+内容）是另一重要方案。最终版本6月发布，Article 50于8月2日（还剩133天）强制执行。（来源：TrueScreen 2026.3.16 / EU Digital Strategy 2026.3）</div>
+                <div class="p-impact"><b>行动：</b>3月30日后追踪C2PA是否写入强制标准，今季度启动技术集成评估</div>
+              </div>
+              <div class="p-card">
+                <div class="p-head"><span class="p-name">Nordstrom March Savings</span><span class="pbadge pbadge-m">观测</span></div>
+                <div class="p-item">Nordstrom March Savings Event持续至3月23日，25%折扣。REI Member Days同步至3月23日。零售大促周期背景：本周是Q1最密集的全渠道促销周，消费者注意力高度集中。（来源：NBC Select 2026.3.20）</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="sec-bar bar-orange"><span class="sec-num">02</span><span class="sec-title">AI行业与竞品动态</span></div>
+          <div class="sec-body">
+            <div class="comp-list">
+              <div class="comp-row">
+                <div><div class="c-name">3D生成工具 — 2026拐点</div><div class="ctag ctag-t">战略级</div></div>
+                <div>
+                  <div class="c-body">GitHub AI Tools Master List（2026.3.6）确认Q1 2026 3D生成领域重大进展：Trellis 2（生产级Mesh+PBR纹理）、Genie 3（Google DeepMind，带实时物理的交互3D世界）、Meshy-6、Marble同期成熟，3D AI进入"从实验到生产"阶段。Apple SHARP（单图→3DGS）、Mobile-GS（11FPS+手机端实时渲染）也在同期突破。（来源：GitHub AI Tools Master List 2026.3.6）</div>
+                  <div class="c-note"><b>战略判断：</b>2026年是3DGS从研究到标准工具的拐点年，与中国竞品（全聚焦2D）的分化窗口是6-12个月，今日再次确认</div>
+                </div>
+              </div>
+              <div class="comp-row">
+                <div><div class="c-name">Midjourney替代品竞争</div><div class="ctag ctag-w">重点关注</div></div>
+                <div>
+                  <div class="c-body">Somake AI（2026.3）分析MJ用户流失原因：内容审查过严（#1投诉）、视频功能落后竞品、Prompt控制不足。替代工具：GPT Image（最强提示理解）、Kling（最强视频）、Gemini（最佳免费）、Freepik（最强素材库整合）。MJ V8虽然图像质量仍第一，但"一个工具不再满足全部需求"趋势加速。（来源：Somake AI 2026.3.19）</div>
+                  <div class="c-note"><b>机会：</b>内容审查严格是MJ最大痛点，电商场景对真实产品图要求高（无过度AI感），Kling/MJ V8组合是当前最优解</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="sec-bar bar-red"><span class="sec-num">03</span><span class="sec-title">今日行动建议</span></div>
+          <div class="sec-body">
+            <div class="action-list">
+              <div class="a-row a-now">
+                <div class="a-dot dot-r"></div>
+                <div>
+                  <div class="a-label a-label-r">今日最后确认（大促前）</div>
+                  <div class="a-text a-text-r">① 确认所有参促产品主图已更新（含折扣标签、场景图、15秒竖版视频）② Wayfair Spring Cyber Week今日倒数第二天，确认庭院套装参与状态 ③ Amazon Big Spring Sale 3天后启动，所有Listing今日须完成最终检查 ④ 今日是Commingling合规操作的最后实际可用窗口之一</div>
+                </div>
+              </div>
+              <div class="a-row a-week">
+                <div class="a-dot dot-a"></div>
+                <div>
+                  <div class="a-label a-label-a">大促期间（3月25日起）追踪</div>
+                  <div class="a-text a-text-a">① 实时追踪庭院套装BSR排名变化，重点关注含AR/3D标签产品的排名提升幅度 ② 记录大促期间差评词新增情况（"配送延迟"等新词出现频率）③ Wayfair亚特兰大实体店（3月31日开业）的线下3D/AR展示方案值得深入研究</div>
+                </div>
+              </div>
+              <div class="a-row a-watch">
+                <div class="a-dot dot-b"></div>
+                <div>
+                  <div class="a-label a-label-b">长期观察</div>
+                  <div class="a-text a-text-b">① Trellis 2/Genie 3等3D生成工具与我们平台的集成可行性评估 ② EU AI Act C2PA守则3月30日反馈截止后的最终方向 ③ Wayfair线下实体+线上AR协同模式的商业效果数据（6月Way Day后可见）</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="view-footer">
+          <div class="source-tags">
+            <span class="stag">Wayfair Press Release 2026.3.3</span>
+            <span class="stag">GitHub AI Tools 2026.3.6</span>
+            <span class="stag">TrueScreen 2026.3.16</span>
+            <span class="stag">Somake AI 2026.3.19</span>
+            <span class="stag">BGR 2025.12</span>
+            <span class="stag">ecombrainly 2026.3</span>
+          </div>
+          <button class="switch-btn" onclick="switchView('weekly', document.querySelector('[onclick*=weekly]'))">查看周报 →</button>
+        </div>
+      </div>
+
+<div class="daily-archive active" id="archive-2026-03-23" style="display:block">
+
+        <div class="view-header">
+          <div>
+            <div class="view-title">每日情报简报</div>
+            <div class="view-meta">2026-03-23 · 北欧重点 · 全球视野 · 数据来源标注于各条目</div>
+            <div class="view-chips">
+              <span class="chip chip-red">🔴 双促销叠加窗口</span>
+              <span class="chip chip-amber" style="color:var(--amber);border-color:rgba(240,168,50,0.3);background:var(--amber-bg);">Wayfair最后1天</span>
+              <span class="chip chip-green">Amazon 2天后开售</span>
+              <span class="chip">MJ V8 + Kling 2.6最新</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="alert-bar" style="background:rgba(200,240,80,0.06);border-color:rgba(200,240,80,0.2);border-left-color:var(--accent);">
+          <div class="alert-dot" style="background:var(--accent)"></div>
+          <div>
+            <div class="alert-title" style="color:var(--accent)">🟢 今日关键节点：促销双叠加 — Wayfair最后1天 + Amazon 2天后开售</div>
+            <div class="alert-body" style="color:rgba(200,240,80,0.75)">Wayfair Spring Cyber Week（3月19-23日）今日最后一天，户外/庭院最高-80%折扣。Amazon Big Spring Sale 3月25日正式启动，持续至3月31日，庭院家具、家居收纳为重点品类，Prime会员享专属"Prime Spring Deal"折扣。Target Circle Deal Days同步3月25-27日启动，Walmart持续Rollback价格战。今日是备货和确认参促的最后窗口。（来源：ABC15 / GMA / NBC Select 2026.3.21-23）</div>
+          </div>
+        </div>
+
+        <div class="alert-bar">
+          <div class="alert-dot"></div>
+          <div>
+            <div class="alert-title">🔴 Amazon 3月31日Commingling截止 — 还剩8天</div>
+            <div class="alert-body">转销商须为所有入仓库存贴FNSKU标签，品牌主可继续用制造商条码（UPC/EAN）通过虚拟追踪归因。3月31日后无FNSKU入仓库存被标记"缺陷"并产生额外费用。Amazon AI广告Prompts今日（3月25日）正式收费，Sponsored Products/Brands提示词增强从公测转付费CPC计费。（来源：BellaVix 2026.2 / ecombrainly 2026.3.17）</div>
+          </div>
+        </div>
+
+        <div class="alert-bar" style="margin-top:-4px;background:rgba(79,158,240,0.06);border-color:rgba(79,158,240,0.2);border-left-color:var(--blue);">
+          <div class="alert-dot" style="background:var(--blue)"></div>
+          <div>
+            <div class="alert-title" style="color:var(--blue)">📋 欧盟AI Act Article 50 倒计时132天（2026年8月2日）</div>
+            <div class="alert-body" style="color:rgba(79,158,240,0.7)">第二版标注守则草稿公众反馈截止3月30日（还剩7天），最终版本预计6月发布。C2PA已成行业事实标准，Adobe/OpenAI均已集成，建议本季度启动技术方案评估。（来源：EU Digital Strategy / TrueScreen 2026.3.16）</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="sec-bar bar-blue"><span class="sec-num">01</span><span class="sec-title">跨境平台政策动态</span></div>
+          <div class="sec-body">
+            <div class="platform-grid">
+              <div class="p-card p-card-high">
+                <div class="p-head"><span class="p-name">Amazon</span><span class="pbadge pbadge-h">高优先</span></div>
+                <div class="p-item">① Big Spring Sale 3月25-31日（2天后）：庭院家具/家居收纳/床品为重点品类，40+品类参与，全民可购无需Prime，Prime会员享专属"Prime Spring Deal"标签折扣。（来源：GMA / CNN Underscored 2026.3.21）</div>
+                <div class="p-impact"><b>数据：</b>预计庭院品类折扣可达50-75%，创年内最低价窗口</div>
+                <div class="p-item" style="margin-top:6px">② AI广告Prompts今日正式收费（3月25日）：Sponsored Products/Brands的AI提示词增强从公测转付费CPC计费。（来源：ecombrainly 2026.3.17）</div>
+                <div class="p-impact"><b>影响：</b>广告成本上升，主图转化率更关键</div>
+                <div class="p-item" style="margin-top:6px">③ Commingling截止8天（3月31日）：转销商须贴FNSKU，品牌主用UPC虚拟追踪。易熔库存须4月20日前移出。</div>
+              </div>
+              <div class="p-card p-card-high">
+                <div class="p-head"><span class="p-name">Wayfair / Target / Walmart</span><span class="pbadge pbadge-h">高优先</span></div>
+                <div class="p-item">① <b>Wayfair Spring Cyber Week今日最后一天（3月23日结束）</b>：户外/庭院最高-80%，Nestl Chaise Lounge $170.99（-75%），火炉桌-37-51%。错过今天需等Way Day（4月下旬）。（来源：Domino / BobVila 2026.3.19）</div>
+                <div class="p-impact"><b>今日行动：</b>确认是否已参与，Way Day提报窗口继续开放</div>
+                <div class="p-item" style="margin-top:6px">② Target Circle Deal Days：3月25-27日与Amazon同步，庭院/户外为重点品类。</div>
+                <div class="p-item" style="margin-top:6px">③ Walmart：无专项大促，但承诺持续Rollback价格战对标Amazon Big Spring Sale。</div>
+              </div>
+              <div class="p-card">
+                <div class="p-head"><span class="p-name">TikTok Shop</span><span class="pbadge pbadge-m">中优先</span></div>
+                <div class="p-item">① 强制物流政策搁置（今年第二次）：卖家继续自主发货，平台管控力弱。北美TTS短期不稳定。（来源：Jay Group 2026.2）</div>
+                <div class="p-item" style="margin-top:5px">② AI内容标注已生效：AI生成商品图/视频须明确披露，与欧盟C2PA方向一致。</div>
+                <div class="p-item" style="margin-top:5px">③ 2026年US GMV预测$23.4亿（Teikametrics），Disney/Ralph Lauren等品牌已入驻，品牌化加速。</div>
+              </div>
+              <div class="p-card">
+                <div class="p-head"><span class="p-name">速卖通 / Temu / Ozon</span><span class="pbadge pbadge-m">中优先</span></div>
+                <div class="p-item">① 速卖通：欧洲下单量2025年超Amazon，德法广告+40/+20%，EU €150免税门槛2026年取消，已在德国建仓应对。（来源：TechBuzzChina 2025.12）</div>
+                <div class="p-item" style="margin-top:5px">② Temu：美国日活5月已降54%（关税冲击），重心转向欧洲，与北欧战略方向正面竞争。（来源：Reuters 2025.5）</div>
+                <div class="p-item" style="margin-top:5px">③ Ozon：IKEA缺口带动家具/收纳增长+90%，目标今年引进10万中国卖家。（来源：DataInsight 2024）</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="sec-bar bar-orange"><span class="sec-num">02</span><span class="sec-title">AI行业与竞品动态</span></div>
+          <div class="sec-body">
+            <div class="comp-list">
+              <div class="comp-row">
+                <div>
+                  <div class="c-name">Midjourney V8</div>
+                  <div class="ctag ctag-t">当前标准版</div>
+                </div>
+                <div>
+                  <div class="c-body">2026年MJ V8已成为当前标准，支持文字渲染精准、角色一致性（--cref）大幅提升、原生视频生成（image-to-video，最长21秒）、3D纹理导出（OBJ文件）。V8比竞品"便宜约25倍"的定价定位持续有效。（来源：CogitoDaily 2026.1 / AIToolsDevPro 2026.1）</div>
+                  <div class="c-note"><b>影响：</b>电商产品图生成质量天花板再次提升，角色一致性改善对换装/模特场景有直接价值</div>
+                </div>
+              </div>
+              <div class="comp-row">
+                <div>
+                  <div class="c-name">Kling AI 2.5/2.6</div>
+                  <div class="ctag ctag-w">重点关注</div>
+                </div>
+                <div>
+                  <div class="c-body">Kling最新版本（2.5/2.6）支持更高分辨率和更长片段，运动连贯性、物理引擎、角色一致性被评为"同价位最强"。通过Artlist平台接入，捆绑素材库，性价比持续领先Runway。（来源：GoCoding 2026.3 / Somake AI 2026.3）</div>
+                  <div class="c-note"><b>判断：</b>图转视频场景首选，可灵+Lovart的生态整合持续加强，需跟进角色一致性能力</div>
+                </div>
+              </div>
+              <div class="comp-row">
+                <div>
+                  <div class="c-name">LiblibAI — LibTV</div>
+                  <div class="ctag ctag-t">战略预警</div>
+                </div>
+                <div>
+                  <div class="c-body">LiblibAI B轮（红杉1.3亿美元）后推出LibTV视频创作平台，面向人类创作者+AI Agent，集成豆包/可灵/Kimi，支持剧本解析/分镜/多机位生成20+专业能力。Lovart年化收入约$3000万，与可灵深度API合作，72小时工作流压缩至45分钟。（来源：哩布哩布AI 2026.3.19）</div>
+                  <div class="c-note"><b>战略预警：</b>目前定位最接近我们一站式平台的竞品，全球化后北欧市场直接竞争风险上升</div>
+                </div>
+              </div>
+              <div class="comp-row">
+                <div>
+                  <div class="c-name">行业格局</div>
+                  <div class="ctag ctag-o">趋势判断</div>
+                </div>
+                <div>
+                  <div class="c-body">2026年AI视觉工具市场已从"单点工具"转向"平台整合"：Somake AI（聚合MJ/Kling/Sora/Veo）、LiblibAI（聚合+工作流）、Creatify/HeyGen（广告专用）各占生态位。专业创作者平均使用4-6个工具，"一站式"整合是核心诉求。（来源：GoCoding 2026.3）</div>
+                  <div class="c-note"><b>机会：</b>3DGS赛道各主要竞品仍未布局，我们的3D基因是目前唯一差异化护城河</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="sec-bar bar-green"><span class="sec-num">03</span><span class="sec-title">3DGS 技术与商业化动态</span></div>
+          <div class="sec-body">
+            <div class="tgs-grid">
+              <div class="tgs-card tgs-full">
+                <div class="tgs-lbl">本周核心数据 — Big Spring Sale庭院品类3D机会</div>
+                <div class="tgs-title">庭院套装是3D展示ROI最高的品类 — Spring Sale窗口提供最佳验证机会</div>
+                <div class="tgs-body">Spring Sale庭院品类将迎来年内最高流量，而庭院套装3D/AR渗透率&lt;3%（行业估算），家具整体&lt;10%。消费者强烈需要预览户外摆放效果，3D展示的转化提升数据：Wayfair×11、Home Depot×3、ByLogstrup+600%。Spring Sale期间是验证3D对庭院品类转化率提升的最佳真实场景。</div>
+                <span class="sig sig-r">建议：Spring Sale期间追踪含3D Listing vs 不含3D Listing的转化率差异</span>
+              </div>
+              <div class="tgs-card">
+                <div class="tgs-lbl">竞品3DGS空白持续</div>
+                <div class="tgs-title">即梦/可灵/LiblibAI均无3DGS布局</div>
+                <div class="tgs-body">所有主要中国AI视觉竞品仍专注2D，LibTV虽然视频能力强，但无3DGS能力。先发优势窗口估计6-12个月。Shopify 2026手机端3D扫描已成标配。</div>
+                <span class="sig sig-g">先发窗口持续开放</span>
+              </div>
+              <div class="tgs-card">
+                <div class="tgs-lbl">平台支持信号</div>
+                <div class="tgs-title">Amazon/Shopify 3DGS支持待宣布</div>
+                <div class="tgs-body">Amazon BSR庭院套装含AR功能Listing正获"View in Your Room"标签。Shopify手机端3D扫描标配化。一旦Amazon官方支持3DGS格式，将成重大先机信号。</div>
+                <span class="sig sig-b">持续监测中</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="sec-bar bar-teal"><span class="sec-num">04</span><span class="sec-title">新市场机会信号</span></div>
+          <div class="sec-body">
+            <div class="market-grid">
+              <div class="m-card m-card-n">
+                <div class="m-lbl">北欧市场 — 重点 <span style="font-size:9px;color:var(--text3)">EU AI Act倒计时132天</span></div>
+                <div class="m-title">C2PA守则反馈截止3月30日 — 7天内须关注最终方向</div>
+                <div class="m-body">欧盟AI内容标注守则第二版草稿公众反馈3月30日截止，最终版本预计6月出炉，Article 50于8月2日全面执行。仅35.7%欧洲企业表示合规准备充分（Deloitte 2026）。EAA无障碍法6月28日也同步执行。北欧市场双重合规压力，工具选型窗口已开放。</div>
+                <div class="m-opp">行动：3月30日后追踪C2PA是否成为强制标准，同步评估C2PA+无障碍标注技术集成方案。</div>
+              </div>
+              <div class="m-card m-card-s">
+                <div class="m-lbl">美国大促市场 — 本周最大机会</div>
+                <div class="m-title">双促销叠加 — Amazon+Target+Wayfair同周密集</div>
+                <div class="m-body">本周（3月23-27日）是2026年Q1最大的促销密集周：Wayfair（今日结束）→ Amazon Big Spring Sale（25-31日）→ Target Circle Deal Days（25-27日）。历史数据：Big Spring Sale期间庭院品类搜索量环比日常+280%。视觉内容质量直接决定在高流量中的点击率。</div>
+                <div class="m-opp">行动：确认主图符合促销场景（含折扣标签），15-30秒场景视频今日须完成。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="sec-bar bar-red"><span class="sec-num">05</span><span class="sec-title">今日行动建议</span></div>
+          <div class="sec-body">
+            <div class="action-list">
+              <div class="a-row a-now">
+                <div class="a-dot dot-r"></div>
+                <div>
+                  <div class="a-label a-label-r">今日立即行动</div>
+                  <div class="a-text a-text-r">① Wayfair Spring Cyber Week今日最后一天：确认庭院套装是否已参与，错过今天需等Way Day（4月下旬） ② Amazon Big Spring Sale 2天后（25日）开售：确认庭院/家居/收纳品类已报名，促销主图+视频素材今日必须完成 ③ Target Circle Deal Days 25-27日同步：确认是否参与对标促销</div>
+                </div>
+              </div>
+              <div class="a-row a-week">
+                <
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="view-footer">
+          <div class="source-tags">
+            <span class="stag">GMA / ABC News 2026.3.21</span>
+            <span class="stag">NBC Select 2026.3.21</span>
+            <span class="stag">ABC15 2026.3.20</span>
+            <span class="stag">ecombrainly 2026.3.17</span>
+            <span class="stag">BellaVix 2026.2</span>
+            <span class="stag">EU Digital Strategy 2026.3</span>
+            <span class="stag">GoCoding 2026.3</span>
+          </div>
+          <button class="switch-btn" onclick="switchView('weekly', document.querySelector('[onclick*=weekly]'))">查看周报 →</button>
+        </div>
+      </div>
+
+    
+    </div>
+
     <div class="view" id="view-weekly">
 
-      <div class="view-header">
-        <div>
-          <div class="view-title">周度情报汇总</div>
-          <div class="view-meta">2026-03-13 → 03-19 · W12 · 重要事项深度分析</div>
-          <div class="view-chips">
-            <span class="chip chip-red">3大核心变量</span>
-            <span class="chip">北欧重点</span>
-            <span class="chip chip-green">3DGS拐点年</span>
-            <span class="chip">9个分析板块</span>
+
+      <!-- WEEK PICKER -->
+      <div class="week-picker-bar">
+        <div class="week-anchor" id="week-anchor">
+          <button class="week-trigger-btn" id="week-trigger-btn" onclick="toggleWeekPicker()">
+            <svg viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="1" y="2.5" width="11" height="9.5" rx="1.5" stroke="currentColor" stroke-width="1.1"/>
+              <line x1="3.5" y1="1" x2="3.5" y2="4" stroke="currentColor" stroke-width="1.1"/>
+              <line x1="9.5" y1="1" x2="9.5" y2="4" stroke="currentColor" stroke-width="1.1"/>
+              <line x1="1" y1="6" x2="12" y2="6" stroke="currentColor" stroke-width="1"/>
+            </svg>
+            选择周期
+          </button>
+          <div class="week-popover" id="week-popover">
+            <div class="week-list">
+              <div class="week-item" onclick="switchWeek('W11', this)">
+                <span class="week-item-num">W11</span>
+                <span class="week-item-range">03-10 → 03-16</span>
+                <span class="week-item-badge week-item-badge-old">归档</span>
+              </div>
+              <div class="week-item selected" onclick="switchWeek('W12', this)">
+                <span class="week-item-num">W12</span>
+                <span class="week-item-range">03-17 → 03-23</span>
+                <span class="week-item-badge">最新</span>
+              </div>
+            </div>
+            <div class="week-footer">点击选择周期，列表自动关闭</div>
+          </div>
+        </div>
+        <span class="week-current-label">当前查看：<span id="week-current-label">W12 · 03-17 → 03-23</span></span>
+      </div>
+
+<div class="weekly-archive" id="weekly-archive-W11">
+        <div class="view-header">
+          <div>
+            <div class="view-title">周度情报汇总</div>
+            <div class="view-meta">2026-03-10 → 03-16 · W11 · 欧盟AI Act守则发布 · LiblibAI B轮完成</div>
+            <div class="view-chips">
+              <span class="chip chip-red">LiblibAI 1.3亿美元B轮</span>
+              <span class="chip">EU AI Act 守则草稿发布</span>
+              <span class="chip chip-green">3DGS移动端突破</span>
+            </div>
+          </div>
+        </div>
+        <div class="section">
+          <div class="sec-bar bar-purple"><span class="sec-num">核心</span><span class="sec-title">W11 核心结论（2026-03-10 → 03-16）</span></div>
+          <div class="sec-body">
+            <div class="concl-list">
+              <div class="concl-row">
+                <span class="concl-num">01</span>
+                <div><div class="concl-text">欧盟AI Act第二版标注守则草稿正式发布（3月5日）</div>
+                <div class="concl-sub">C2PA被确认为主流AI内容验证方案，Adobe/OpenAI已集成。守则公众反馈截止3月30日，最终版本预计6月，Article 50于8月2日（倒计时138天）全面执行。这是北欧市场"开箱即合规"工具定位的最强战略依据。（来源：EU Digital Strategy / TrueScreen 2026.3）</div></div>
+              </div>
+              <div class="concl-row">
+                <span class="concl-num">02</span>
+                <div><div class="concl-text">LiblibAI完成1.3亿美元B轮（红杉领投），宣布全球化</div>
+                <div class="concl-sub">今年国内AI应用最大单笔融资，日活400万，旗下Lovart年化约$3000万。LiblibAI升级为"模型聚合+工作流平台"，Lovart定位"端到端Agent"，两者合力构成完整竞争矩阵，宣布全球化，北欧市场直接竞争风险上升。（来源：36氪 / 量子位 2026.3）</div></div>
+              </div>
+              <div class="concl-row">
+                <span class="concl-num">03</span>
+                <div><div class="concl-text">3DGS移动端突破：Mobile-GS实现11FPS+手机端实时渲染</div>
+                <div class="concl-sub">最新论文实现Vulkan 2.0 11FPS+手机端实时渲染，北欧消费者可在移动端流畅浏览3D商品。ICLR 2026 20倍压缩比论文同期发布，目标50MB内可移动加载。两项技术同期突破，3DGS手机端商业化障碍基本消除。（来源：Radiance Fields Newsletter 2026.3）</div></div>
+              </div>
+              <div class="concl-row">
+                <span class="concl-num">04</span>
+                <div><div class="concl-text">Amazon AI Agent政策（3月4日生效）+ Commingling终止公告</div>
+                <div class="concl-sub">AI自动化工具须声明身份，违规可无申诉封禁；Commingling终止3月31日执行（届时计8天）。Amazon正在从"放任"转向"合规化"，接入Amazon的AI视觉服务需满足合规要求。（来源：Amazon Seller Central 2026.3）</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="view-footer">
+          <div class="source-tags">
+            <span class="stag">EU Digital Strategy 2026.3.5</span>
+            <span class="stag">TrueScreen 2026.3.16</span>
+            <span class="stag">36氪 2026.3</span>
+            <span class="stag">Radiance Fields Newsletter 2026.3</span>
+            <span class="stag">Amazon Seller Central 2026.3</span>
           </div>
         </div>
       </div>
 
-      <!-- W01 核心结论 -->
+<div class="weekly-archive active" id="weekly-archive-W12" style="display:block">
+
+      <div class="view-header">
+        <div>
+          <div class="view-title">周度情报汇总</div>
+          <div class="view-meta">2026-03-17 → 03-23 · W12 · 促销密集周 · 重要事项深度分析</div>
+          <div class="view-chips">
+            <span class="chip chip-red">🔴 Q1最大促销周</span>
+            <span class="chip">北欧重点</span>
+            <span class="chip chip-green">3DGS拐点确认</span>
+            <span class="chip">6日存档完整</span>
+          </div>
+        </div>
+      </div>
+
       <div class="section">
         <div class="sec-bar bar-purple"><span class="sec-num">01</span><span class="sec-title">本周核心结论</span></div>
         <div class="sec-body">
           <div class="concl-list">
             <div class="concl-row">
               <span class="concl-num">01</span>
-              <div><div class="concl-text">合规倒计时成为北欧市场最大的业务机会窗口</div>
-              <div class="concl-sub">欧盟AI Act（8月）+ EAA（6月）双期叠加，3月13日再次更新合规细则，北欧卖家正处于工具选型窗口期。谁先提供"合规即开箱"的视觉平台，谁就占据先机。</div></div>
+              <div>
+                <div class="concl-text">本周是2026年Q1最大的促销密集周，庭院品类是最大战场</div>
+                <div class="concl-sub">Wayfair Spring Cyber Week（3月19-23日，最高-80%）+ Amazon Big Spring Sale（3月25-31日）+ Target Circle Deal Days（3月25-27日）三平台同周叠加。庭院套装是跨平台共同主推品类，含3D/AR标签的Listing在高流量期的点击率和转化率差异是本周最值得追踪的数据。（来源：NBC Select / GMA / Today.com 2026.3.21）</div>
+              </div>
             </div>
             <div class="concl-row">
               <span class="concl-num">02</span>
-              <div><div class="concl-text">竞品格局从"技术比拼"转向"生态整合"阶段</div>
-              <div class="concl-sub">可灵+Lovart深度合作、LiblibAI完成1.3亿美元B轮，行业正从"谁生成得最好"转向"谁的工作流最顺滑"。我们需要明确是做工具还是做平台。</div></div>
+              <div>
+                <div class="concl-text">Amazon四大合规变化同期叠加，视觉内容质量成双重核心竞争力</div>
+                <div class="concl-sub">2026年Amazon四大核心变化：①FBA Commingling终止（3月31日）②AI广告Prompts付费（3月25日）③AI Agent政策（3月4日生效）④Big Spring Sale高流量。合规成本上升+广告成本上升，主图和视频的转化效率直接决定利润空间。这是我们向Amazon卖家销售视觉服务的最佳话术时机。</div>
+              </div>
             </div>
             <div class="concl-row">
               <span class="concl-num">03</span>
-              <div><div class="concl-text">3DGS进入商业化加速期，电商是最近的落地场景</div>
-              <div class="concl-sub">2026是业界公认3DGS"从研究到标准工具"拐点年。Zillow已落地，德语区电商试点验证市场，手机端渲染瓶颈正在突破。我们的3D+AI定位正好站在这个窗口上。</div></div>
+              <div>
+                <div class="concl-text">3DGS从"实验"到"生产工具"的拐点本周再次确认</div>
+                <div class="concl-sub">Trellis 2（生产级Mesh+PBR纹理）、Genie 3（Google DeepMind实时物理3D）、Apple SHARP（单图→3DGS）同期成熟，GitHub AI Tools Master List（2026.3.6）将其列为Q1重大突破。与此同时，中国所有主要竞品（MJ/Kling/LiblibAI/即梦/可灵）仍全聚焦2D。先发窗口6-12个月，今季度是布局关键期。</div>
+              </div>
+            </div>
+            <div class="concl-row">
+              <span class="concl-num">04</span>
+              <div>
+                <div class="concl-text">北欧双重合规窗口倒计时加速，工具选型决策期临近</div>
+                <div class="concl-sub">EU AI Act Article 50守则反馈3月30日截止（7天），最终版本6月出炉，8月2日强制执行（132天）。EAA无障碍法6月28日同步。Wayfair已签约Google UCP，Shopify/Walmart/Target均已加入，Amazon尚未参与。北欧卖家正处于工具选型最活跃期，"开箱即合规"是最强差异化定位。</div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- W02 重大事件 -->
       <div class="section">
         <div class="sec-bar bar-blue"><span class="sec-num">02</span><span class="sec-title">本周重大事件回顾</span></div>
         <div class="sec-body">
           <div class="event-list">
             <div class="ev-row">
-              <div class="ev-dot dot-h"></div>
-              <div><div class="ev-title">欧盟更新AI Act高风险合规细则 <span class="pbadge pbadge-h">高</span></div>
-              <div class="ev-body">3月13日发布AI Act谈判文本，AI生成内容透明标注（Article 50）明确于2026年8月2日生效。守则草稿开放公众反馈至3月30日。</div>
-              <div class="ev-impact"><b>直接影响：</b>平台输出内容必须支持机器可读AI生成元数据，否则不得在欧盟合规使用。</div></div>
+              <div class="ev-dot" style="width:6px;height:6px;border-radius:50%;background:var(--red);margin-top:4px;"></div>
+              <div>
+                <div class="ev-title">Wayfair Spring Cyber Week启动（3月19日）<span class="pbadge pbadge-h">高</span></div>
+                <div class="ev-body">Wayfair史上最大春季促销正式启动，庭院/户外品类最高折扣80%，Nestl Chaise Lounge $170.99（-75%），火炉桌37-51%折扣。持续至3月23日，覆盖家具/家居/收纳/床品全品类。</div>
+                <div class="ev-impact"><b>直接影响：</b>庭院品类流量激增，含视觉内容的Listing点击率差异本周可见</div>
+              </div>
             </div>
             <div class="ev-row">
-              <div class="ev-dot dot-h"></div>
-              <div><div class="ev-title">TikTok Shop强制物流政策再次搁置 <span class="pbadge pbadge-h">高</span></div>
-              <div class="ev-body">原定3月31日执行的统一物流方案宣告暂停，今年第二次政策反转，平台管控力极为有限。</div>
-              <div class="ev-impact"><b>趋势判断：</b>平台成熟度尚低，短期爆发增长概率下调。</div></div>
+              <div class="ev-dot" style="width:6px;height:6px;border-radius:50%;background:var(--red);margin-top:4px;"></div>
+              <div>
+                <div class="ev-title">Midjourney V8 Alpha更新（本周持续迭代）<span class="pbadge pbadge-h">高</span></div>
+                <div class="ev-body">Relax模式向全体Standard/Pro/Mega用户开放；新增SREF/Moodboards版本（4倍速/成本，支持--hd）；下一轮V8训练正在准备中；新宽高比选项扩展。（来源：Midjourney Release Notes 2026.3.21）</div>
+                <div class="ev-impact"><b>电商影响：</b>批量生产成本大幅降低，Relax模式适合大量低优先级产品图生成</div>
+              </div>
             </div>
             <div class="ev-row">
-              <div class="ev-dot dot-m"></div>
-              <div><div class="ev-title">LiblibAI完成1.3亿美元B轮，宣布全球化 <span class="pbadge pbadge-m">中</span></div>
-              <div class="ev-body">红杉中国领投，今年国内AI应用最大单笔融资。官方宣布加速全球化布局，旗下Lovart年化收入约3000万美元。</div>
-              <div class="ev-impact"><b>战略预警：</b>定位最接近我们，全球化意味着北欧市场直接竞争风险上升。</div></div>
+              <div class="ev-dot" style="width:6px;height:6px;border-radius:50%;background:var(--amber);margin-top:4px;"></div>
+              <div>
+                <div class="ev-title">Wayfair亚特兰大第二家实体大店宣布3月31日开业<span class="pbadge pbadge-m">中</span></div>
+                <div class="ev-body">约15万平方英尺，含家具/户外/家电/家装全品类，设有The Porch全天咖啡厅，正式庆典4月17-19日。"2026年是Wayfair关键年"——CFO表态。（来源：Wayfair Press Release 2026.3.3）</div>
+                <div class="ev-impact"><b>战略意义：</b>线下体验+线上AR/3D内容协同，Wayfair正在构建全渠道3D展示生态</div>
+              </div>
             </div>
             <div class="ev-row">
-              <div class="ev-dot dot-m"></div>
-              <div><div class="ev-title">3DGS正式进入电商商业化拐点 <span class="pbadge pbadge-m">中</span></div>
-              <div class="ev-body">Zillow成为首个落地3DGS的主流平台，德语区出现GDPR合规3DGS白标电商平台，业界公认2026是标准工具化拐点年。</div>
-              <div class="ev-impact"><b>机会：</b>Amazon/Shopify尚未官方支持3DGS格式，先期布局可建立壁垒。</div></div>
+              <div class="ev-dot" style="width:6px;height:6px;border-radius:50%;background:var(--amber);margin-top:4px;"></div>
+              <div>
+                <div class="ev-title">Kling 3.0深度评测：确认"虚拟导演级"能力<span class="pbadge pbadge-m">中</span></div>
+                <div class="ev-body">Cybernews深度评测确认：统一多模态引擎（文字+图像+视频+音频一次生成），物理引擎仿真，4K HDR，多镜头连续性，角色一致性Omni变体是当前最强。（来源：Cybernews 2026.3）</div>
+                <div class="ev-impact"><b>电商价值：</b>产品广告场景（慢动作/精准打光/macro镜头）是Kling 3.0最强落地场景</div>
+              </div>
+            </div>
+            <div class="ev-row">
+              <div class="ev-dot" style="width:6px;height:6px;border-radius:50%;background:var(--blue);margin-top:4px;"></div>
+              <div>
+                <div class="ev-title">Google UCP新签约方：Wayfair确认加入<span class="pbadge pbadge-m">中</span></div>
+                <div class="ev-body">Wayfair官方确认为Google UCP共同开发方，目标维持AI代理购物场景中的定价/履约控制权。已签约：Shopify/Walmart/Wayfair/Target。Amazon尚未参与。（来源：Digital Commerce 360 2026.1.14）</div>
+                <div class="ev-impact"><b>预判：</b>AI代理购物入口格局正在形成，Amazon系卖家面临流量分流风险</div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- W03 竞品 -->
       <div class="section">
         <div class="sec-bar bar-orange"><span class="sec-num">03</span><span class="sec-title">竞品格局变化分析</span></div>
         <div class="sec-body">
           <div class="comp-card-w">
-            <div class="comp-head-w"><span class="comp-name-w">格局判断：工具整合战打响</span><span class="ctag ctag-t">战略级变化</span></div>
-            <div class="comp-body-w">本周最重要的竞品信号不是某款产品的功能更新，而是整个赛道的战略转向：<br><br>
-            <b style="color:var(--text)">可灵+Lovart深度合作</b>（API接入，视频生成嵌入设计全流程），说明头部玩家正从"单点工具"转向"闭环生态"。72小时工作压缩至45分钟，设计成本降低70%。<br><br>
-            <b style="color:var(--text)">LiblibAI全球化</b>加速这一趋势。"聚合最优模型+专业工作流+社区生态"是他们的模式，Lovart则做"端到端Agent"，两者合力构成完整竞争矩阵。</div>
-            <div class="comp-verdict-w"><b>关键问题：</b>我们是继续做"工具"，还是向"平台"演进？这个战略选择影响未来12个月的产品路线。</div>
+            <div class="comp-head-w"><span class="comp-name-w">本周格局判断：工具聚合平台加速崛起，3DGS赛道仍空白</span><span class="ctag ctag-t">战略级</span></div>
+            <div class="comp-body-w">本周最重要的竞品信号：AI视觉工具市场的分工格局趋于清晰。<br><br>
+            <b style="color:var(--text)">图像生成</b>：MJ V8仍是质量天花板，但Relax模式的开放让批量生产成本大幅下降。GPT Image的提示理解力更强，Gemini免费层最优。<br><br>
+            <b style="color:var(--text)">视频生成</b>：Kling 3.0（产品广告）/ Sora 2（长叙事）/ Runway Gen-4（艺术风格）形成三强鼎立，无绝对赢家，场景决定选择。<br><br>
+            <b style="color:var(--text)">平台聚合</b>：OpenArt（100+模型）、LiblibAI/Lovart（工作流）、Somake AI（聚合+工具）正在争夺"一站式"市场，与我们定位直接竞争。<br><br>
+            <b style="color:var(--text)">3DGS赛道</b>：所有竞品仍在2D，这是目前最确定的差异化护城河。</div>
+            <div class="comp-verdict-w"><b>核心问题：</b>OpenArt和Lovart的快速扩张让"一站式"定位的护城河缩窄，我们的差异化必须落在"3DGS+电商垂直"两个维度的交叉点上。</div>
           </div>
           <div class="mini-grid">
-            <div class="mini-card"><div class="mini-name">即梦AI（字节）</div><div class="mini-body">消费级体验强，瓶颈是服务器拥堵，速度稳定性是我们的销售话术切入点。</div></div>
-            <div class="mini-card"><div class="mini-name">可灵AI（快手）</div><div class="mini-body">角色一致性+长视频，接入Lovart扩展生态，正从工具向平台延伸。</div></div>
-            <div class="mini-card"><div class="mini-name">Lovart / LiblibAI</div><div class="mini-body" style="color:rgba(240,79,79,0.7)">与我们定位重叠度最高，全球化后是最需警惕的竞品。</div></div>
-            <div class="mini-card"><div class="mini-name">美图 / WHEE</div><div class="mini-body">"少花钱"增长路线，注重留存和变现效率，覆盖本周不足。</div></div>
+            <div class="mini-card"><div class="mini-name">Midjourney V8</div><div class="mini-body">图像质量天花板，但Relax模式让批量成本下降，视频功能仍落后。</div></div>
+            <div class="mini-card"><div class="mini-name">Kling 3.0</div><div class="mini-body">产品广告最强场景，与Lovart深度API合作，生态整合持续扩张。</div></div>
+            <div class="mini-card"><div class="mini-name">LiblibAI / LibTV</div><div class="mini-body" style="color:rgba(240,79,79,0.7)">B轮后推出视频平台，全球化提速，北欧市场竞争风险上升。</div></div>
+            <div class="mini-card"><div class="mini-name">OpenArt / Somake</div><div class="mini-body">100+模型聚合，$7/月起，与我们"一站式"定位最直接竞争。</div></div>
           </div>
         </div>
       </div>
 
-      <!-- W04 政策趋势 -->
       <div class="section">
-        <div class="sec-bar bar-teal"><span class="sec-num">04</span><span class="sec-title">平台政策趋势研判</span></div>
-        <div class="sec-body">
-          <div class="trend-grid">
-            <div class="tr-card tr-full">
-              <div class="tr-lbl">本周规律</div>
-              <div class="tr-title">两个趋势同步加强：平台管控收紧 + 合规门槛抬高</div>
-              <div class="tr-body">Amazon（AI Agent合规）、TikTok Shop（物流统一化）、Lazada（佣金管控），方向一致：平台正在加强对卖家履约行为和内容来源的管控。这是整个行业的系统性升级。<br><br>欧盟AI Act+EAA双重合规叠加，北欧市场合规门槛是全球最高的。这既是障碍，也是护城河：谁能帮北欧卖家"开箱即合规"，谁就是不可替代的工具。</div>
-            </div>
-            <div class="tr-card">
-              <div class="tr-lbl">TikTok Shop</div>
-              <div class="tr-title">政策反转两次 = 平台尚未成熟</div>
-              <div class="tr-body">今年两次大政策反转，北美TTS短期不会是主战场，东南亚（越南/泰国）更稳定。</div>
-            </div>
-            <div class="tr-card">
-              <div class="tr-lbl">Amazon</div>
-              <div class="tr-title">AI工具管控从放任转为合规化</div>
-              <div class="tr-body">AI Agent政策生效，意味着所有接入Amazon的AI视觉服务商都需满足合规要求。</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- W05 3DGS -->
-      <div class="section">
-        <div class="sec-bar bar-green"><span class="sec-num">05</span><span class="sec-title">3DGS 技术与商业化深度研判</span></div>
+        <div class="sec-bar bar-green"><span class="sec-num">04</span><span class="sec-title">3DGS 技术与商业化深度研判</span></div>
         <div class="sec-body">
           <div class="tgs-grid">
             <div class="tgs-card tgs-full">
               <div class="tgs-lbl">本周战略判断</div>
-              <div class="tgs-title">2026是3DGS商业化拐点，电商是最快落地场景</div>
-              <div class="tgs-body">三个关键技术障碍正在同步突破：文件大小（20倍压缩比）、移动端渲染（Mobile-GS 11FPS+）、获取成本（Apple SHARP单图转3D）。三个同时解决，意味着今年就是布局窗口。Zillow已落地，德语区白标电商平台试点成功。</div>
-              <span class="sig sig-r">建议本季度立项3DGS能力调研</span>
+              <div class="tgs-title">2026 Q1多项突破同期成熟，3DGS商业化窗口正式开启</div>
+              <div class="tgs-body">三个关键障碍同期突破：① Trellis 2（生产级Mesh+PBR纹理，从3D模型到可用资产）② Apple SHARP（单图→3DGS，无需多角度拍摄）③ Mobile-GS（手机端11FPS+实时渲染）。同时Shopify手机端3D扫描已成2026标配，Amazon庭院套装AR标签正在获取"View in Your Room"搜索页专属标签。三大障碍（获取成本/文件大小/移动端渲染）同期解决，商业化拐点正在发生。（来源：GitHub AI Tools 2026.3.6）</div>
+              <span class="sig sig-r">建议本季度立项3DGS能力调研，年内推出庭院套装3DGS Beta版</span>
             </div>
             <div class="tgs-card">
-              <div class="tgs-lbl">最大技术突破</div>
-              <div class="tgs-title">Apple SHARP 单图→3DGS</div>
-              <div class="tgs-body">卖家无需多角度拍摄，只需现有商品图即可生成3D资产，门槛降低一个数量级。</div>
-              <span class="sig sig-b">集成优先级：高</span>
+              <div class="tgs-lbl">本周新增验证数据</div>
+              <div class="tgs-title">Big Spring Sale = 最佳3D ROI验证窗口</div>
+              <div class="tgs-body">Spring Sale高流量期（3月25-31日）：含AR标签 vs 不含AR标签的庭院Listing，转化率差异可在1周内积累足够样本。Wayfair历史数据：AR用户购买可能性×11，Home Depot×3，ByLogstrup+600%。</div>
+              <span class="sig sig-b">追踪任务：记录本周含AR Listing的BSR变化</span>
             </div>
             <div class="tgs-card">
               <div class="tgs-lbl">竞争格局</div>
-              <div class="tgs-title">中国竞品暂未布局3DGS</div>
-              <div class="tgs-body">即梦、可灵、Lovart均聚焦2D，3DGS赛道暂时空白。我们的3D基因是天然优势，窗口期有限。</div>
-              <span class="sig sig-g">先发优势窗口：6-12个月</span>
+              <div class="tgs-title">中国竞品3DGS空白窗口继续</div>
+              <div class="tgs-body">即梦/可灵/LiblibAI/LibTV均聚焦2D，无3DGS布局。OpenArt支持100+模型但同样无3DGS。先发优势窗口估计6-12个月，今季度是布局关键期。</div>
+              <span class="sig sig-g">窗口继续开放，建议立即评估Apple SHARP集成</span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- W06 市场 -->
       <div class="section">
-        <div class="sec-bar bar-teal"><span class="sec-num">06</span><span class="sec-title">市场机会深度分析</span></div>
+        <div class="sec-bar bar-teal"><span class="sec-num">05</span><span class="sec-title">市场机会深度分析</span></div>
         <div class="sec-body">
           <div class="market-grid">
             <div class="m-card m-card-n">
-              <div class="m-lbl">北欧市场 — 重点</div>
-              <div class="m-title">合规+3DGS双线布局，今年最确定的增量市场</div>
-              <div class="m-body">AI Act（8月）+ EAA（6月）形成双重合规压力，北欧卖家工具选型窗口已开启。欧盟对美国科技公司监管收紧，欧洲品牌偏向本土合规工具。德语区3DGS电商试点已验证市场，北欧紧随其后可能性极高。</div>
-              <div class="m-opp">行动：以合规输出能力（C2PA+无障碍标注）为切入点，率先在北欧建立认知。</div>
+              <div class="m-lbl">北欧市场 — 重点 <span style="font-size:9px;color:var(--text3)">双重合规倒计时</span></div>
+              <div class="m-title">EU守则3月30日截止 + 8月2日强制 — 工具选型决策期已到</div>
+              <div class="m-body">AI Act Article 50守则反馈3月30日截止，最终版本6月，强制执行8月2日（132天）。EAA无障碍法6月28日同步。仅35.7%欧洲企业合规准备充分（Deloitte 2026）。Wayfair（Google UCP共同开发方）已领先布局AI购物合规，Amazon尚未参与。北欧卖家的工具选型窗口已开放。</div>
+              <div class="m-opp">行动：3月30日后追踪C2PA强制化进程，今季度启动技术集成方案评估，年内完成C2PA+无障碍标注集成，领先竞品6个月。</div>
             </div>
             <div class="m-card m-card-s">
-              <div class="m-lbl">东南亚市场 — 机会观测</div>
-              <div class="m-title">Lazada成本压力创造进入时机</div>
-              <div class="m-body">Lazada佣金上调3%，卖家单件利润压缩，高转化视觉内容ROI上升。越南、泰国TikTok Shop政策相对稳定，短视频带货与AI视频天然契合。</div>
-              <div class="m-opp">行动：以越南/泰国TikTok Shop卖家为目标，设计低成本高频AI视频生成方案。</div>
+              <div class="m-lbl">美国促销市场 — 本周最大窗口</div>
+              <div class="m-title">Q1最大流量周：视觉内容决定促销期收益</div>
+              <div class="m-body">本周（3月19-27日）是Q1最密集的全渠道促销周：Wayfair（至3月23日）→ Amazon Big Spring Sale（25-31日）→ Target Circle Deal Days（25-27日）。历史数据：Big Spring Sale期间庭院品类搜索量环比日常+280%。在高流量期，主图点击率的1%差异可能放大为10%的销售额差异。</div>
+              <div class="m-opp">行动：大促期间（3月25-31日）每日追踪庭院品类BSR，重点记录含3D/AR vs 不含3D/AR的Listing表现差异，积累ROI验证数据。</div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- W07 下周 -->
       <div class="section">
-        <div class="sec-bar bar-red"><span class="sec-num">07</span><span class="sec-title">下周重点关注事项</span></div>
+        <div class="sec-bar bar-red"><span class="sec-num">06</span><span class="sec-title">下周重点关注事项</span></div>
         <div class="sec-body">
           <div class="checklist">
-            <div class="ck-row"><div class="ck-box"></div><div class="ck-text"><b style="color:var(--text)">欧盟AI内容标注守则反馈截止（3月30日）</b> — 追踪最终版本，确认C2PA是否成为强制标准</div></div>
-            <div class="ck-row"><div class="ck-box"></div><div class="ck-text"><b style="color:var(--text)">Shopify 3D/AR展示格式专项调研</b> — 搜索"Shopify 3D model AR 2026"，判断是否即将支持3DGS</div></div>
-            <div class="ck-row"><div class="ck-box"></div><div class="ck-text"><b style="color:var(--text)">LiblibAI全球化动向跟踪</b> — 重点观察是否有北欧/欧洲市场动作</div></div>
-            <div class="ck-row"><div class="ck-box"></div><div class="ck-text"><b style="color:var(--text)">美图设计室/WHEE更新监测</b> — 增加"美图 WHEE AI 2026"专项搜索</div></div>
-            <div class="ck-row"><div class="ck-box"></div><div class="ck-text"><b style="color:var(--text)">Amazon 3月31日库存政策截止</b> — 追踪实际影响，评估视觉服务需求变化</div></div>
+            <div class="ck-row"><div class="ck-box"></div><div class="ck-text"><b style="color:var(--text)">EU AI Act守则反馈截止（3月30日）</b> — 追踪最终版本，确认C2PA是否写入强制标准，这是8月合规截止前最关键的技术方向确认</div></div>
+            <div class="ck-row"><div class="ck-box"></div><div class="ck-text"><b style="color:var(--text)">Amazon Commingling截止（3月31日）</b> — 最终确认FBA转销商FNSKU贴标合规，品牌主UPC虚拟追踪方案是否已配置</div></div>
+            <div class="ck-row"><div class="ck-box"></div><div class="ck-text"><b style="color:var(--text)">Big Spring Sale庭院品类3D/AR表现追踪（3月25-31日）</b> — 每日记录含AR标签 vs 不含AR标签Listing的BSR和转化率差异，积累ROI验证数据</div></div>
+            <div class="ck-row"><div class="ck-box"></div><div class="ck-text"><b style="color:var(--text)">Wayfair亚特兰大实体店开业（3月31日）</b> — 追踪其3D/AR线下展示方案，评估线下+线上AR协同模式的商业效果</div></div>
+            <div class="ck-row"><div class="ck-box"></div><div class="ck-text"><b style="color:var(--text)">LiblibAI / LibTV北欧/欧洲市场动作</b> — B轮融资后全球化提速，是目前定位最接近的竞品，需持续监测其是否进入北欧市场</div></div>
           </div>
         </div>
       </div>
 
-      <!-- W08 战略 -->
       <div class="section">
-        <div class="sec-bar bar-pink"><span class="sec-num">08</span><span class="sec-title">本周战略建议</span></div>
+        <div class="sec-bar bar-pink"><span class="sec-num">07</span><span class="sec-title">本周战略建议</span></div>
         <div class="sec-body">
           <div class="strat-list">
             <div class="strat-row strat-1">
               <span class="strat-num">S1</span>
-              <div class="strat-body strat-body-1">立即启动欧盟AI合规技术方案评估。以C2PA元数据标注为切入点，将"合规输出"做成北欧市场的核心产品卖点，而非被动合规成本。目标：2026年8月前完成集成，先竞品6个月。</div>
+              <div class="strat-body strat-body-1">利用Big Spring Sale高流量期（3月25-31日）收集3D/AR vs 普通Listing的转化率对比数据。这是年内最佳的真实场景ROI验证窗口，数据结果将成为最强的客户销售话术。目标：至少追踪10个庭院套装Listing，记录含AR标签的排名和转化率变化。</div>
             </div>
             <div class="strat-row strat-2">
               <span class="strat-num">S2</span>
-              <div class="strat-body strat-body-2">本季度立项3DGS能力调研，重点评估Apple SHARP（单图转3D）技术集成可行性。在主要竞品尚未布局3DGS的窗口期内，这是最具差异化的产品机会。目标：年内推出3DGS商品展示Beta版本。</div>
+              <div class="strat-body strat-body-2">今季度启动欧盟AI合规技术方案评估。3月30日是EU守则反馈截止，确认C2PA方向后立即评估集成方案。目标：年内完成C2PA+无障碍标注集成，在北欧市场形成"开箱即合规"的核心竞争力，领先竞品6个月。</div>
             </div>
             <div class="strat-row strat-3">
               <span class="strat-num">S3</span>
-              <div class="strat-body strat-body-3">明确战略定位：工具 vs 平台。Lovart的全球化让这个问题变得紧迫。如果选择做平台，需要在融资和产品路线上做相应规划；如果做工具，需要深度绑定3DGS这个差异化技术护城河。</div>
+              <div class="strat-body strat-body-3">本季度立项Apple SHARP（单图→3DGS）集成可行性评估。所有中国竞品仍在2D，3DGS先发窗口6-12个月。以庭院套装为首选落地品类（3D/AR渗透率&lt;3%，消费者最需要预览摆放效果），年内推出庭院套装3DGS展示Beta版本。</div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- W09 优化 -->
       <div class="section">
-        <div class="sec-bar bar-gray"><span class="sec-num">09</span><span class="sec-title">周报自我优化备忘</span></div>
+        <div class="sec-bar bar-gray"><span class="sec-num">08</span><span class="sec-title">周报自我优化备忘</span></div>
         <div class="sec-body">
           <div class="improve">
             <div class="i-block">
               <div class="i-title">+ 下次可扩展的监测领域</div>
-              <div class="i-item">Shopify 3D/AR格式专项 — 多次未覆盖，下次设置独立搜索词</div>
-              <div class="i-item">东南亚3DGS应用案例 — 德语区已有试点，东南亚是否有跟进</div>
-              <div class="i-item">Reflct.app竞品深度调研 — 3DGS电商专用工具，需产品层面详细分析</div>
+              <div class="i-item">Big Spring Sale实时折扣数据 — 庭院品类具体折扣幅度和Top卖家表现数据</div>
+              <div class="i-item">Wayfair亚特兰大实体店3D/AR展示方案 — 线下+线上AR协同模式值得深研</div>
+              <div class="i-item">Target Circle Deal Days庭院品类详情 — 本周未专项覆盖</div>
+              <div class="i-item">LibTV详细产品功能对比 — 与我们平台功能逐项对比</div>
             </div>
             <div class="i-block">
               <div class="i-title">↑ 本周不足与改进方向</div>
-              <div class="i-item">Temu/Shein持续缺失 — 建议从跨境圈、雨果网等中文行业媒体角度搜索</div>
-              <div class="i-item">北欧分国家数据不足 — 下次分解为Sweden / Norway / Finland细化词</div>
-              <div class="i-item">竞品流量数据需更新 — LiblibAI/Lovart最新数据停留在2025年</div>
+              <div class="i-item">Lazada / 东南亚动态缺失 — 下周增加专项搜索</div>
+              <div class="i-item">Nordic分国家数据 — Sweden/Norway/Finland分别追踪EAA合规进展</div>
+              <div class="i-item">Ozon春季家具卖家入驻实时数据 — IKEA缺口仍是核心机会，需更新数据</div>
             </div>
           </div>
         </div>
@@ -1504,25 +2275,30 @@ body {
 
       <div class="view-footer">
         <div class="source-tags">
-          <span class="stag">Amazon Seller Central</span>
-          <span class="stag">EU Digital Strategy</span>
-          <span class="stag">Radiance Fields Newsletter</span>
-          <span class="stag">36氪 / 量子位</span>
-          <span class="stag">K&L Gates AI Act Report</span>
+          <span class="stag">NBC Select / GMA 2026.3.21</span>
+          <span class="stag">Today.com 2026.3.21</span>
+          <span class="stag">Midjourney Release Notes 2026.3</span>
+          <span class="stag">Cybernews 2026.3</span>
+          <span class="stag">GitHub AI Tools 2026.3.6</span>
+          <span class="stag">Digital Commerce 360 2026.2</span>
+          <span class="stag">Wayfair Press Release 2026.3.3</span>
+          <span class="stag">EU Digital Strategy 2026.3</span>
         </div>
         <button class="switch-btn" onclick="switchView('daily', document.querySelector('[onclick*=daily]'))">← 查看日报</button>
       </div>
+    
+      </div>
+
+    
     </div>
 
-    <!-- ═══════════════════════════════════════
-         CATEGORY VIEW
-    ═══════════════════════════════════════ -->
     <div class="view" id="view-category">
+
 
       <div class="view-header">
         <div>
           <div class="view-title">品类动态监测</div>
-          <div class="view-meta">2026-03-19 · 平台维度 · 主攻：沙发 / 餐桌 / 庭院套装 / 卧室家具 · 拓新：家电 / 3C / 收纳 / 办公家具</div>
+          <div class="view-meta">2026-03-23 · 平台维度 · 主攻：沙发 / 餐桌 / 庭院套装 / 卧室家具 · 拓新：家电 / 3C / 收纳 / 办公家具</div>
           <div class="view-chips">
             <span class="chip chip-red">🔥 3项差评预警</span>
             <span class="chip chip-amber" style="color:var(--amber);border-color:rgba(240,168,50,0.3);background:var(--amber-bg);">🚨 庭院新卖家涌入</span>
@@ -1531,7 +2307,6 @@ body {
           </div>
         </div>
       </div>
-
 
       <!-- 平台切换 tabs -->
       <div class="plat-tabs">
@@ -1550,7 +2325,7 @@ body {
       </div>
 
       <!-- ══════════ AMAZON ══════════ -->
-      <div class="plat-panel active" id="plat-amazon">
+      <div class="plat-panel active" id="plat-amazon" style="display:block">
 
         <!-- STAT STRIP — 今日更新 2026-03-19 -->
         <div class="plat-stat-strip">
@@ -1988,7 +2763,6 @@ body {
           </div>
         </div>
 
-
         <!-- DIFF BAR: Amazon -->
 
         <!-- 今日洞察 — 更新 2026-03-19 -->
@@ -2368,7 +3142,6 @@ body {
             <div class="mx-insight-body">Etsy是进入北欧市场的重要渠道，快拆庭院套装本月新增41款，手工/北欧风定位享受溢价。</div>
           </div>
         </div>
-
 
       </div>
 
@@ -3130,7 +3903,6 @@ body {
             </div>
           </div>
         </div>
-
 
       </div>
 
@@ -3916,13 +4688,16 @@ body {
         </div>
         <button class="switch-btn" onclick="switchView('daily', document.querySelector('[onclick*=daily]'))">← 返回日报</button>
       </div>
-    </div>
+    
     </div>
 
-!-- /main -->
+
+
+  </div><!-- /main -->
 </div><!-- /app -->
 
 <script>
+
 // ── VIEW SWITCH ──
 function switchView(id, navEl) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -3937,6 +4712,19 @@ const pad = n => String(n).padStart(2,'0');
 const weekNum = Math.ceil((((d - new Date(d.getFullYear(),0,1))/86400000)+1)/7);
 document.getElementById('live-date').textContent =
   `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} · W${weekNum}`;
+
+// ── REAL-TIME COUNTDOWN ──
+function calcDays(targetDateStr) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = new Date(targetDateStr);
+  target.setHours(0, 0, 0, 0);
+  return Math.max(0, Math.round((target - today) / 86400000));
+}
+const aiActEl = document.getElementById('aiact-days');
+const eaaEl   = document.getElementById('eaa-days');
+if (aiActEl) aiActEl.textContent = calcDays('2026-08-02');
+if (eaaEl)   eaaEl.textContent   = calcDays('2026-06-28');
 
 // ── CHECKBOX ──
 document.querySelectorAll('.ck-box').forEach(box => {
@@ -3957,12 +4745,14 @@ function switchCat(id, el) {
   if (el) el.classList.add('active');
 }
 function switchPlat(id, el) {
-  document.querySelectorAll('.plat-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.plat-panel').forEach(p => {
+    p.classList.remove('active');
+    p.style.display = 'none';
+  });
   document.querySelectorAll('.plat-tab').forEach(t => t.classList.remove('active'));
   const panel = document.getElementById('plat-' + id);
-  if (panel) { panel.classList.add('active'); }
+  if (panel) { panel.classList.add('active'); panel.style.display = 'block'; }
   if (el) el.classList.add('active');
-  // Reset scroll position of main container
   const main = document.querySelector('.main');
   if (main) main.scrollTop = 0;
 }
@@ -3972,11 +4762,15 @@ function switchPlat(id, el) {
 const REPORT_DATES = new Set([
   '2026-03-18',
   '2026-03-19',
+  '2026-03-20',
+  '2026-03-21',
+  '2026-03-22',
+  '2026-03-23',
 ]);
 
 let calYear     = 2026;
 let calMonth    = 2;            // 0-indexed: March = 2
-let selectedDate = '2026-03-19';
+let selectedDate = '2026-03-23';
 let calOpen     = false;
 
 function renderCalendar() {
@@ -4045,9 +4839,12 @@ function switchDate(dateKey) {
   selectedDate = dateKey;
 
   // Show the right archive panel
-  document.querySelectorAll('.daily-archive').forEach(a => a.classList.remove('active'));
+  document.querySelectorAll('.daily-archive').forEach(a => {
+    a.classList.remove('active');
+    a.style.display = 'none';
+  });
   const target = document.getElementById('archive-' + dateKey);
-  if (target) target.classList.add('active');
+  if (target) { target.classList.add('active'); target.style.display = 'block'; }
 
   // Update label text
   const label = document.getElementById('cal-selected-label');
@@ -4072,13 +4869,83 @@ document.addEventListener('click', e => {
   }
 });
 
+// ── WEEK PICKER ──
+let weekPickerOpen = false;
+
+function toggleWeekPicker() {
+  weekPickerOpen = !weekPickerOpen;
+  const popover = document.getElementById('week-popover');
+  const btn = document.getElementById('week-trigger-btn');
+  if (weekPickerOpen) {
+    popover.classList.add('open');
+    btn.classList.add('open');
+  } else {
+    popover.classList.remove('open');
+    btn.classList.remove('open');
+  }
+}
+
+function switchWeek(weekKey, el) {
+  // Hide all weekly archives
+  document.querySelectorAll('.weekly-archive').forEach(a => {
+    a.classList.remove('active');
+    a.style.display = 'none';
+  });
+  // Deactivate all week items
+  document.querySelectorAll('.week-item').forEach(i => i.classList.remove('selected'));
+  // Show selected
+  const target = document.getElementById('weekly-archive-' + weekKey);
+  if (target) { target.classList.add('active'); target.style.display = 'block'; }
+  if (el) el.classList.add('selected');
+  // Update label
+  const label = document.getElementById('week-current-label');
+  const range = el ? el.querySelector('.week-item-range').textContent : '';
+  if (label) label.textContent = weekKey + ' · ' + range;
+  // Close popover
+  weekPickerOpen = false;
+  document.getElementById('week-popover').classList.remove('open');
+  document.getElementById('week-trigger-btn').classList.remove('open');
+  // Scroll to top
+  const main = document.querySelector('.main');
+  if (main) main.scrollTop = 0;
+}
+
+// Close week picker when clicking outside
+document.addEventListener('click', e => {
+  const anchor = document.getElementById('week-anchor');
+  if (anchor && !anchor.contains(e.target) && weekPickerOpen) {
+    weekPickerOpen = false;
+    document.getElementById('week-popover').classList.remove('open');
+    document.getElementById('week-trigger-btn').classList.remove('open');
+  }
+});
+
 // Init on load
 document.addEventListener('DOMContentLoaded', () => {
-  // Show the default (latest) archive
+  // ── Daily archive: show latest ──
   document.querySelectorAll('.daily-archive').forEach(a => a.classList.remove('active'));
   const init = document.getElementById('archive-' + selectedDate);
   if (init) init.classList.add('active');
-  // Pre-render calendar (hidden until triggered)
+
+  // ── Weekly archive: show latest (W12) ──
+  document.querySelectorAll('.weekly-archive').forEach(a => {
+    a.classList.remove('active'); a.style.display = 'none';
+  });
+  const initWeek = document.getElementById('weekly-archive-W12');
+  if (initWeek) { initWeek.classList.add('active'); initWeek.style.display = 'block'; }
+
+  // ── Category: ensure first plat-panel is active ──
+  document.querySelectorAll('.plat-panel').forEach(p => {
+    if (!p.classList.contains('active')) p.style.display = 'none';
+  });
+  const activePlat = document.querySelector('.plat-panel.active');
+  if (activePlat) activePlat.style.display = 'block';
+  const firstTab = document.querySelector('.plat-tab');
+  if (firstTab && !document.querySelector('.plat-tab.active')) {
+    firstTab.classList.add('active');
+  }
+
+  // ── Pre-render calendar ──
   renderCalendar();
 });
 
@@ -4107,6 +4974,7 @@ function toggleSidebar() {
       <polyline points="4,2 10,7 4,12" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
   }
 }
+
 </script>
 
   <!-- Cloudflare Web Analytics -->
